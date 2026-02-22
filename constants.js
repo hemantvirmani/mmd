@@ -15,6 +15,7 @@ const APP_CONST = {
   labels: {
     noFileLoaded: "No file loaded",
     loadedFromDisk: "Loaded from Disk:",
+    unsavedDraft: "Unsaved draft",
     renderReady: "Ready",
     renderError: "Render error",
     renderOk: "Rendered"

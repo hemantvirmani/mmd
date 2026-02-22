@@ -27,6 +27,7 @@
   }
 
   function bindEvents() {
+    el.mermaidInput.addEventListener("input", markDraftFromEditor);
     el.mermaidInput.addEventListener("input", debounce(onEditorChange, 250));
     el.loadDiskBtn.addEventListener("click", () => el.diskFileInput.click());
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
@@ -69,7 +70,10 @@
     }
     try {
       const parsed = JSON.parse(raw);
-      return parsed?.source === "disk" ? parsed : null;
+      if (parsed?.source === "disk" || parsed?.source === "draft") {
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -77,6 +81,28 @@
 
   function onEditorChange() {
     renderAndPersist();
+  }
+
+  function markDraftFromEditor() {
+    if (state.currentFile?.source === "disk") {
+      return;
+    }
+
+    const hasText = el.mermaidInput.value.trim().length > 0;
+    if (!hasText) {
+      return;
+    }
+
+    if (!state.fileLoaded) {
+      setFileLoaded(true);
+    }
+
+    state.currentFile = {
+      source: "draft",
+      name: ensureExtension(state.currentFile?.name || "diagram.mmd")
+    };
+    persistFileMeta();
+    setFileStatus(APP_CONST.labels.unsavedDraft);
   }
 
   async function renderAndPersist() {
@@ -182,6 +208,9 @@
   function formatFileStatus(fileMeta) {
     if (!fileMeta) {
       return APP_CONST.labels.noFileLoaded;
+    }
+    if (fileMeta.source === "draft") {
+      return APP_CONST.labels.unsavedDraft;
     }
     return `${APP_CONST.labels.loadedFromDisk} ${fileMeta.name}`;
   }
