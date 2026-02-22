@@ -1,0 +1,3 @@
+# Optional local ignores
+.DS_Store
+Thumbs.db
