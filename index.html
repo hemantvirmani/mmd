@@ -14,9 +14,7 @@
       <h1>Mermaid Editor</h1>
     </div>
     <div class="top-actions">
-      <button id="loadGithubBtn" type="button">Load from GitHub Repo</button>
       <button id="loadDiskBtn" type="button">Load from Disk</button>
-      <button id="saveGithubBtn" type="button" disabled>Save to GitHub</button>
       <button id="saveDiskBtn" type="button" disabled>Save to Disk</button>
       <button id="copyShareBtn" type="button">Copy Share URL</button>
     </div>
@@ -41,52 +39,6 @@
   </main>
 
   <input id="diskFileInput" type="file" accept=".mmd,.mermaid" hidden />
-
-  <div id="githubModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="githubModalTitle">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="githubModalTitle">GitHub Repository Browser</h3>
-        <button id="closeGithubModalBtn" type="button" class="icon-btn" aria-label="Close">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-grid">
-          <label>
-            Personal Access Token
-            <input id="ghToken" type="password" placeholder="github_pat_..." autocomplete="off" />
-          </label>
-          <label>
-            Owner
-            <input id="ghOwner" type="text" placeholder="your-username-or-org" />
-          </label>
-          <label>
-            Repository
-            <input id="ghRepo" type="text" placeholder="repo-name" />
-          </label>
-          <label>
-            Branch
-            <input id="ghBranch" type="text" placeholder="main" />
-          </label>
-        </div>
-
-        <div class="helper-row">
-          <small>Token + repo details are stored in localStorage on this browser.</small>
-          <button id="connectGithubBtn" type="button">Connect</button>
-        </div>
-
-        <div class="browser-header">
-          <strong>Path:</strong>
-          <code id="githubCurrentPath">/</code>
-          <button id="goUpBtn" type="button">Up</button>
-        </div>
-
-        <ul id="githubFileList" class="file-list"></ul>
-        <p id="githubStatus" class="status-text"></p>
-      </div>
-    </div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
   <script src="./constants.js"></script>
