@@ -155,11 +155,21 @@ button:disabled {
   height: 100%;
   overflow: auto;
   padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .output svg {
+  display: block;
   max-width: 100%;
   height: auto;
+  margin: 0 auto;
+}
+
+.output pre {
+  width: 100%;
+  margin: 0;
 }
 
 .error {
