@@ -1,5 +1,7 @@
 (() => {
   const el = {
+    splitLayout: document.querySelector(".split-layout"),
+    splitter: document.getElementById("splitter"),
     mermaidInput: document.getElementById("mermaidInput"),
     mermaidOutput: document.getElementById("mermaidOutput"),
     fileStatus: document.getElementById("fileStatus"),
@@ -12,7 +14,9 @@
 
   const state = {
     fileLoaded: false,
-    currentFile: null
+    currentFile: null,
+    splitRatio: APP_CONST.layout.defaultSplitRatio,
+    isResizing: false
   };
 
   mermaid.initialize({
@@ -22,6 +26,7 @@
   });
 
   function init() {
+    restoreSplitPreference();
     bindEvents();
     loadInitialEditorState();
   }
@@ -33,6 +38,9 @@
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
     el.saveDiskBtn.addEventListener("click", saveToDisk);
     el.copyShareBtn.addEventListener("click", copyShareUrl);
+    el.splitter.addEventListener("pointerdown", onSplitterPointerDown);
+    el.splitter.addEventListener("keydown", onSplitterKeyDown);
+    window.addEventListener("resize", applySplitRatioForCurrentViewport);
   }
 
   function loadInitialEditorState() {
@@ -205,6 +213,106 @@
     el.renderStatus.className = `status-text ${className}`.trim();
   }
 
+  function restoreSplitPreference() {
+    const raw = localStorage.getItem(APP_CONST.storage.splitRatio);
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      applySplitRatio(APP_CONST.layout.defaultSplitRatio, false);
+      return;
+    }
+    applySplitRatio(parsed, false);
+  }
+
+  function applySplitRatioForCurrentViewport() {
+    applySplitRatio(state.splitRatio, false);
+  }
+
+  function onSplitterPointerDown(event) {
+    if (isMobileViewport()) {
+      return;
+    }
+    state.isResizing = true;
+    document.body.classList.add("is-resizing");
+    el.splitter.setPointerCapture(event.pointerId);
+
+    updateSplitRatioFromPointer(event.clientX);
+
+    window.addEventListener("pointermove", onSplitterPointerMove);
+    window.addEventListener("pointerup", onSplitterPointerUp);
+  }
+
+  function onSplitterPointerMove(event) {
+    if (!state.isResizing) {
+      return;
+    }
+    updateSplitRatioFromPointer(event.clientX);
+  }
+
+  function onSplitterPointerUp() {
+    if (!state.isResizing) {
+      return;
+    }
+    state.isResizing = false;
+    document.body.classList.remove("is-resizing");
+    localStorage.setItem(APP_CONST.storage.splitRatio, String(state.splitRatio));
+
+    window.removeEventListener("pointermove", onSplitterPointerMove);
+    window.removeEventListener("pointerup", onSplitterPointerUp);
+  }
+
+  function onSplitterKeyDown(event) {
+    if (isMobileViewport()) {
+      return;
+    }
+
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.key === "ArrowLeft"
+      ? -APP_CONST.layout.keyboardStep
+      : APP_CONST.layout.keyboardStep;
+    applySplitRatio(state.splitRatio + delta, true);
+  }
+
+  function updateSplitRatioFromPointer(clientX) {
+    const rect = el.splitLayout.getBoundingClientRect();
+    if (rect.width <= 0) {
+      return;
+    }
+    const ratio = (clientX - rect.left) / rect.width;
+    applySplitRatio(ratio, true);
+  }
+
+  function applySplitRatio(ratio, persistPreference) {
+    const clamped = clamp(
+      ratio,
+      APP_CONST.layout.minSplitRatio,
+      APP_CONST.layout.maxSplitRatio
+    );
+    state.splitRatio = clamped;
+
+    if (isMobileViewport()) {
+      el.splitLayout.style.removeProperty("--left-pane-width");
+      el.splitLayout.style.removeProperty("--right-pane-width");
+      return;
+    }
+
+    const leftWidth = `${(clamped * 100).toFixed(2)}fr`;
+    const rightWidth = `${((1 - clamped) * 100).toFixed(2)}fr`;
+    el.splitLayout.style.setProperty("--left-pane-width", leftWidth);
+    el.splitLayout.style.setProperty("--right-pane-width", rightWidth);
+
+    if (persistPreference) {
+      localStorage.setItem(APP_CONST.storage.splitRatio, String(clamped));
+    }
+  }
+
+  function isMobileViewport() {
+    return window.innerWidth <= APP_CONST.layout.mobileBreakpoint;
+  }
+
   function formatFileStatus(fileMeta) {
     if (!fileMeta) {
       return APP_CONST.labels.noFileLoaded;
@@ -293,6 +401,10 @@
       }
       timerId = setTimeout(() => fn(...args), delayMs);
     };
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
   }
 
   init();

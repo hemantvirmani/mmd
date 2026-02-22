@@ -10,7 +10,15 @@ const APP_CONST = {
   allowedExtensions: [".mmd", ".mermaid"],
   storage: {
     code: "mmd_code",
-    fileMeta: "mmd_file_meta"
+    fileMeta: "mmd_file_meta",
+    splitRatio: "mmd_split_ratio"
+  },
+  layout: {
+    defaultSplitRatio: 0.5,
+    minSplitRatio: 0.25,
+    maxSplitRatio: 0.75,
+    keyboardStep: 0.03,
+    mobileBreakpoint: 980
   },
   labels: {
     noFileLoaded: "No file loaded",

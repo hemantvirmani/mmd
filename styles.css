@@ -98,9 +98,11 @@ button:disabled {
 }
 
 .split-layout {
+  --left-pane-width: 1fr;
+  --right-pane-width: 1fr;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: minmax(240px, var(--left-pane-width)) 12px minmax(240px, var(--right-pane-width));
+  gap: 0.75rem;
   padding: 1rem;
   height: calc(100vh - 78px);
 }
@@ -113,6 +115,37 @@ button:disabled {
   flex-direction: column;
   min-height: 0;
   box-shadow: 0 8px 24px rgba(30, 64, 175, 0.08);
+}
+
+.splitter {
+  cursor: col-resize;
+  position: relative;
+  border-radius: 999px;
+  background: transparent;
+  outline: none;
+}
+
+.splitter::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #93c5fd;
+}
+
+.splitter:hover::before,
+.splitter:focus-visible::before,
+body.is-resizing .splitter::before {
+  background: var(--primary);
+}
+
+body.is-resizing {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .panel-header {
@@ -188,5 +221,9 @@ button:disabled {
 
   .panel {
     min-height: 45vh;
+  }
+
+  .splitter {
+    display: none;
   }
 }
