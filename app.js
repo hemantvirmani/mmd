@@ -129,8 +129,8 @@
       const { svg } = await mermaid.render(id, code);
       el.mermaidOutput.innerHTML = svg;
       setRenderStatus(APP_CONST.labels.renderOk, "success");
-    } catch (error) {
-      el.mermaidOutput.innerHTML = `<pre>${escapeHtml(String(error))}</pre>`;
+    } catch {
+      el.mermaidOutput.innerHTML = "";
       setRenderStatus(APP_CONST.labels.renderError, "error");
     }
   }
@@ -384,13 +384,6 @@
     const binary = atob(value);
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     return new TextDecoder().decode(bytes);
-  }
-
-  function escapeHtml(value) {
-    return value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
   }
 
   function debounce(fn, delayMs) {
