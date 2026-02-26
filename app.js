@@ -9,7 +9,9 @@
     loadDiskBtn: document.getElementById("loadDiskBtn"),
     saveDiskBtn: document.getElementById("saveDiskBtn"),
     copyShareBtn: document.getElementById("copyShareBtn"),
-    diskFileInput: document.getElementById("diskFileInput")
+    diskFileInput: document.getElementById("diskFileInput"),
+    prismHighlight: document.getElementById("prismHighlight"),
+    prismPre: document.querySelector(".prism-editor-wrap pre")
   };
 
   const state = {
@@ -25,6 +27,11 @@
     theme: "default"
   });
 
+  if (typeof Prism !== "undefined" && Prism.plugins?.autoloader) {
+    Prism.plugins.autoloader.languages_path =
+      "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/";
+  }
+
   function init() {
     restoreSplitPreference();
     bindEvents();
@@ -32,8 +39,11 @@
   }
 
   function bindEvents() {
+    el.mermaidInput.addEventListener("keydown", onEditorKeyDown);
+    el.mermaidInput.addEventListener("input", updateHighlight);
     el.mermaidInput.addEventListener("input", markDraftFromEditor);
     el.mermaidInput.addEventListener("input", debounce(onEditorChange, 250));
+    el.mermaidInput.addEventListener("scroll", syncEditorScroll);
     el.loadDiskBtn.addEventListener("click", () => el.diskFileInput.click());
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
     el.saveDiskBtn.addEventListener("click", saveToDisk);
@@ -114,6 +124,7 @@
   }
 
   async function renderAndPersist() {
+    updateHighlight();
     const code = el.mermaidInput.value;
     localStorage.setItem(APP_CONST.storage.code, code);
     updateUrlWithCode(code);
@@ -398,6 +409,32 @@
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function onEditorKeyDown(event) {
+    if (event.key !== "Tab") return;
+    event.preventDefault();
+    const ta = el.mermaidInput;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.slice(0, start) + "    " + ta.value.slice(end);
+    ta.selectionStart = ta.selectionEnd = start + 4;
+    ta.dispatchEvent(new Event("input"));
+  }
+
+  function updateHighlight() {
+    if (!el.prismHighlight) return;
+    // Trailing newline prevents the last line from collapsing in height
+    el.prismHighlight.textContent = el.mermaidInput.value + "\n";
+    if (typeof Prism !== "undefined") {
+      Prism.highlightElement(el.prismHighlight);
+    }
+  }
+
+  function syncEditorScroll() {
+    if (!el.prismPre) return;
+    el.prismPre.scrollTop = el.mermaidInput.scrollTop;
+    el.prismPre.scrollLeft = el.mermaidInput.scrollLeft;
   }
 
   init();
