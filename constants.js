@@ -14,9 +14,9 @@ const APP_CONST = {
     splitRatio: "mmd_split_ratio"
   },
   layout: {
-    defaultSplitRatio: 0.5,
-    minSplitRatio: 0.25,
-    maxSplitRatio: 0.75,
+    defaultSplitRatio: 0.4,
+    minSplitRatio: 0.4,
+    maxSplitRatio: 0.4,
     keyboardStep: 0.03,
     mobileBreakpoint: 980
   },
