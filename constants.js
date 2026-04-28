@@ -20,7 +20,10 @@ const APP_CONST = {
     minSplitRatio: 0.25,
     maxSplitRatio: 0.75,
     keyboardStep: 0.03,
-    mobileBreakpoint: 980
+    mobileBreakpoint: 980,
+    minZoom: 0.25,
+    maxZoom: 4,
+    zoomStep: 0.25
   },
   labels: {
     noFileLoaded: "No file loaded",
@@ -39,6 +42,7 @@ const APP_CONST = {
     copyFailed: "Copy failed. You can copy from your address bar.",
     saved: "Saved.",
     invalidExt: "Selected file is not .mmd or .mermaid",
-    downloadedSvg: "SVG downloaded."
+    downloadedSvg: "SVG downloaded.",
+    downloadedPng: "PNG downloaded."
   }
 };

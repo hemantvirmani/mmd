@@ -19,6 +19,7 @@
       <button id="saveDiskBtn" type="button" disabled>Save to Disk</button>
       <button id="copyShareBtn" type="button">Copy Share URL</button>
       <button id="downloadSvgBtn" type="button" disabled>Download SVG</button>
+      <button id="downloadPngBtn" type="button" disabled>Download PNG</button>
     </div>
   </header>
 
@@ -55,6 +56,11 @@
           <option value="neutral">Neutral</option>
           <option value="base">Base</option>
         </select>
+        </div>
+        <div class="zoom-control">
+          <button id="zoomOutBtn" type="button" class="zoom-btn" aria-label="Zoom out">&#8722;</button>
+          <span id="zoomLevel" class="zoom-level">100%</span>
+          <button id="zoomInBtn" type="button" class="zoom-btn" aria-label="Zoom in">&#43;</button>
         </div>
         <span id="renderStatus" class="status-text">Ready</span>
       </div>

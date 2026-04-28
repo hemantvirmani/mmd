@@ -13,7 +13,11 @@
     prismHighlight: document.getElementById("prismHighlight"),
     prismPre: document.querySelector(".prism-editor-wrap pre"),
     downloadSvgBtn: document.getElementById("downloadSvgBtn"),
-    themeSelect: document.getElementById("themeSelect")
+    downloadPngBtn: document.getElementById("downloadPngBtn"),
+    themeSelect: document.getElementById("themeSelect"),
+    zoomOutBtn: document.getElementById("zoomOutBtn"),
+    zoomInBtn: document.getElementById("zoomInBtn"),
+    zoomLevel: document.getElementById("zoomLevel")
   };
 
   const state = {
@@ -21,7 +25,8 @@
     currentFile: null,
     splitRatio: APP_CONST.layout.defaultSplitRatio,
     isResizing: false,
-    theme: "default"
+    theme: "default",
+    zoom: 1
   };
 
   mermaid.initialize({
@@ -53,7 +58,11 @@
     el.saveDiskBtn.addEventListener("click", saveToDisk);
     el.copyShareBtn.addEventListener("click", copyShareUrl);
     el.downloadSvgBtn.addEventListener("click", downloadSvg);
+    el.downloadPngBtn.addEventListener("click", downloadPng);
     el.themeSelect.addEventListener("change", onThemeChange);
+    el.zoomOutBtn.addEventListener("click", () => setZoom(state.zoom - APP_CONST.layout.zoomStep));
+    el.zoomInBtn.addEventListener("click", () => setZoom(state.zoom + APP_CONST.layout.zoomStep));
+    el.mermaidOutput.addEventListener("wheel", onOutputWheel, { passive: false });
     el.splitter.addEventListener("pointerdown", onSplitterPointerDown);
     el.splitter.addEventListener("keydown", onSplitterKeyDown);
     window.addEventListener("resize", applySplitRatioForCurrentViewport);
@@ -138,6 +147,7 @@
     if (!code.trim()) {
       el.mermaidOutput.innerHTML = "";
       el.downloadSvgBtn.disabled = true;
+      el.downloadPngBtn.disabled = true;
       setRenderStatus(APP_CONST.labels.renderReady, "");
       return;
     }
@@ -149,12 +159,15 @@
     try {
       const { svg } = await mermaid.render(id, code, scratchpad);
       el.mermaidOutput.innerHTML = svg;
+      applyZoom();
       el.downloadSvgBtn.disabled = false;
+      el.downloadPngBtn.disabled = false;
       setRenderStatus(APP_CONST.labels.renderOk, "success");
     } catch (err) {
       const msg = getMermaidErrorText(err);
       el.mermaidOutput.innerHTML = `<pre class="render-error-msg">${escapeHtml(msg)}</pre>`;
       el.downloadSvgBtn.disabled = true;
+      el.downloadPngBtn.disabled = true;
       setRenderStatus(APP_CONST.labels.renderError, "error");
     } finally {
       scratchpad.remove();
@@ -232,6 +245,84 @@
     anchor.click();
     URL.revokeObjectURL(url);
     setRenderStatus(APP_CONST.messages.downloadedSvg, "success");
+  }
+
+  function downloadPng() {
+    const svgEl = el.mermaidOutput.querySelector("svg");
+    if (!svgEl) return;
+
+    // getBBox() returns the tight bounding box of actual drawn content,
+    // excluding mermaid's internal padding/whitespace in the viewBox.
+    let bbox;
+    try { bbox = svgEl.getBBox(); } catch { bbox = null; }
+
+    const pad = 16;
+    const vbX = bbox ? bbox.x - pad : 0;
+    const vbY = bbox ? bbox.y - pad : 0;
+    const vbW = bbox && bbox.width > 0 ? bbox.width + pad * 2 : (svgEl.viewBox?.baseVal?.width || 500);
+    const vbH = bbox && bbox.height > 0 ? bbox.height + pad * 2 : (svgEl.viewBox?.baseVal?.height || 500);
+
+    const clone = svgEl.cloneNode(true);
+    clone.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
+    clone.setAttribute("width", vbW);
+    clone.setAttribute("height", vbH);
+    clone.style.maxWidth = "none";
+
+    const svgStr = new XMLSerializer().serializeToString(clone);
+    // Base64 data URL works reliably in Chrome/Edge/Firefox.
+    // Blob URLs with SVGs containing <style> blocks fail silently in Chromium.
+    const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgStr)))}`;
+
+    const scale = 2;
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth || vbW;
+      const h = img.naturalHeight || vbH;
+      const canvas = document.createElement("canvas");
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((pngBlob) => {
+        const pngUrl = URL.createObjectURL(pngBlob);
+        const anchor = document.createElement("a");
+        anchor.href = pngUrl;
+        const baseName = state.currentFile?.name?.replace(/\.(mmd|mermaid)$/i, "") || "diagram";
+        anchor.download = `${baseName}.png`;
+        anchor.click();
+        URL.revokeObjectURL(pngUrl);
+        setRenderStatus(APP_CONST.messages.downloadedPng, "success");
+      }, "image/png");
+    };
+    img.onerror = () => setRenderStatus("PNG export failed.", "error");
+    img.src = dataUrl;
+  }
+
+  function setZoom(level) {
+    state.zoom = clamp(Math.round(level * 100) / 100, APP_CONST.layout.minZoom, APP_CONST.layout.maxZoom);
+    el.zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
+    applyZoom();
+  }
+
+  function applyZoom() {
+    const svgEl = el.mermaidOutput.querySelector("svg");
+    if (!svgEl) return;
+    const vb = svgEl.viewBox?.baseVal;
+    if (!vb || vb.width <= 0) return;
+    const zoom = state.zoom;
+    svgEl.style.width = `${vb.width * zoom}px`;
+    svgEl.style.height = "auto";
+    svgEl.style.maxWidth = zoom > 1 ? "none" : "100%";
+  }
+
+  function onOutputWheel(e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? APP_CONST.layout.zoomStep : -APP_CONST.layout.zoomStep;
+    setZoom(state.zoom + delta);
   }
 
   function onThemeChange() {
