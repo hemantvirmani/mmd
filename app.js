@@ -135,14 +135,17 @@
       return;
     }
 
+    const id = `mmd-${Date.now()}`;
     try {
-      const id = `mmd-${Date.now()}`;
       const { svg } = await mermaid.render(id, code);
       el.mermaidOutput.innerHTML = svg;
       setRenderStatus(APP_CONST.labels.renderOk, "success");
     } catch {
       el.mermaidOutput.innerHTML = "";
       setRenderStatus(APP_CONST.labels.renderError, "error");
+    } finally {
+      const orphan = document.getElementById("d" + id);
+      if (orphan) orphan.remove();
     }
   }
 
@@ -412,14 +415,59 @@
   }
 
   function onEditorKeyDown(event) {
-    if (event.key !== "Tab") return;
-    event.preventDefault();
     const ta = el.mermaidInput;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    ta.value = ta.value.slice(0, start) + "    " + ta.value.slice(end);
-    ta.selectionStart = ta.selectionEnd = start + 4;
-    ta.dispatchEvent(new Event("input"));
+
+    if (event.key === "Tab") {
+      event.preventDefault();
+      if (!event.shiftKey && ta.selectionStart === ta.selectionEnd) {
+        document.execCommand("insertText", false, "    ");
+      } else {
+        indentLines(ta, event.shiftKey);
+      }
+      ta.dispatchEvent(new Event("input"));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const start = ta.selectionStart;
+      const currentLine = ta.value.slice(0, start).split("\n").pop();
+      const indent = currentLine.match(/^(\s*)/)[1];
+      document.execCommand("insertText", false, "\n" + indent);
+      ta.dispatchEvent(new Event("input"));
+    }
+  }
+
+  function indentLines(ta, dedent) {
+    const value = ta.value;
+    const selStart = ta.selectionStart;
+    const selEnd = ta.selectionEnd;
+
+    const lineStart = value.lastIndexOf("\n", selStart - 1) + 1;
+    const selEndAdj = selEnd > selStart && value[selEnd - 1] === "\n" ? selEnd - 1 : selEnd;
+    const lineEndIdx = value.indexOf("\n", selEndAdj);
+    const blockEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+
+    const lines = value.slice(lineStart, blockEnd).split("\n");
+    let newSelStart = selStart;
+    let newSelEnd = selEnd;
+
+    const newLines = lines.map((line, i) => {
+      if (dedent) {
+        const spaces = Math.min(4, line.match(/^ */)[0].length);
+        if (i === 0) newSelStart = Math.max(lineStart, selStart - spaces);
+        newSelEnd -= spaces;
+        return line.slice(spaces);
+      } else {
+        if (i === 0) newSelStart += 4;
+        newSelEnd += 4;
+        return "    " + line;
+      }
+    });
+
+    ta.value = value.slice(0, lineStart) + newLines.join("\n") + value.slice(blockEnd);
+    ta.selectionStart = Math.max(0, newSelStart);
+    ta.selectionEnd = Math.max(newSelStart, newSelEnd);
   }
 
   function updateHighlight() {
