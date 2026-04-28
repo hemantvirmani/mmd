@@ -11,8 +11,10 @@ const APP_CONST = {
   storage: {
     code: "mmd_code",
     fileMeta: "mmd_file_meta",
-    splitRatio: "mmd_split_ratio"
+    splitRatio: "mmd_split_ratio",
+    theme: "mmd_theme"
   },
+  themes: ["default", "dark", "forest", "neutral", "base"],
   layout: {
     defaultSplitRatio: 0.4,
     minSplitRatio: 0.25,
@@ -36,6 +38,7 @@ const APP_CONST = {
     copied: "Share URL copied to clipboard.",
     copyFailed: "Copy failed. You can copy from your address bar.",
     saved: "Saved.",
-    invalidExt: "Selected file is not .mmd or .mermaid"
+    invalidExt: "Selected file is not .mmd or .mermaid",
+    downloadedSvg: "SVG downloaded."
   }
 };

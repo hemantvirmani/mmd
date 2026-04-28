@@ -11,14 +11,17 @@
     copyShareBtn: document.getElementById("copyShareBtn"),
     diskFileInput: document.getElementById("diskFileInput"),
     prismHighlight: document.getElementById("prismHighlight"),
-    prismPre: document.querySelector(".prism-editor-wrap pre")
+    prismPre: document.querySelector(".prism-editor-wrap pre"),
+    downloadSvgBtn: document.getElementById("downloadSvgBtn"),
+    themeSelect: document.getElementById("themeSelect")
   };
 
   const state = {
     fileLoaded: false,
     currentFile: null,
     splitRatio: APP_CONST.layout.defaultSplitRatio,
-    isResizing: false
+    isResizing: false,
+    theme: "default"
   };
 
   mermaid.initialize({
@@ -34,6 +37,7 @@
 
   function init() {
     restoreSplitPreference();
+    restoreThemePreference();
     bindEvents();
     loadInitialEditorState();
   }
@@ -48,6 +52,8 @@
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
     el.saveDiskBtn.addEventListener("click", saveToDisk);
     el.copyShareBtn.addEventListener("click", copyShareUrl);
+    el.downloadSvgBtn.addEventListener("click", downloadSvg);
+    el.themeSelect.addEventListener("change", onThemeChange);
     el.splitter.addEventListener("pointerdown", onSplitterPointerDown);
     el.splitter.addEventListener("keydown", onSplitterKeyDown);
     window.addEventListener("resize", applySplitRatioForCurrentViewport);
@@ -131,21 +137,27 @@
 
     if (!code.trim()) {
       el.mermaidOutput.innerHTML = "";
+      el.downloadSvgBtn.disabled = true;
       setRenderStatus(APP_CONST.labels.renderReady, "");
       return;
     }
 
     const id = `mmd-${Date.now()}`;
+    const scratchpad = document.createElement("div");
+    scratchpad.style.cssText = "visibility:hidden;position:fixed;top:0;left:0;pointer-events:none;";
+    document.body.appendChild(scratchpad);
     try {
-      const { svg } = await mermaid.render(id, code);
+      const { svg } = await mermaid.render(id, code, scratchpad);
       el.mermaidOutput.innerHTML = svg;
+      el.downloadSvgBtn.disabled = false;
       setRenderStatus(APP_CONST.labels.renderOk, "success");
-    } catch {
-      el.mermaidOutput.innerHTML = "";
+    } catch (err) {
+      const msg = getMermaidErrorText(err);
+      el.mermaidOutput.innerHTML = `<pre class="render-error-msg">${escapeHtml(msg)}</pre>`;
+      el.downloadSvgBtn.disabled = true;
       setRenderStatus(APP_CONST.labels.renderError, "error");
     } finally {
-      const orphan = document.getElementById("d" + id);
-      if (orphan) orphan.remove();
+      scratchpad.remove();
     }
   }
 
@@ -205,6 +217,47 @@
     } catch {
       setRenderStatus(APP_CONST.messages.copyFailed, "error");
     }
+  }
+
+  function downloadSvg() {
+    const svgEl = el.mermaidOutput.querySelector("svg");
+    if (!svgEl) return;
+    const svgStr = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    const baseName = state.currentFile?.name?.replace(/\.(mmd|mermaid)$/i, "") || "diagram";
+    anchor.download = `${baseName}.svg`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setRenderStatus(APP_CONST.messages.downloadedSvg, "success");
+  }
+
+  function onThemeChange() {
+    state.theme = el.themeSelect.value;
+    localStorage.setItem(APP_CONST.storage.theme, state.theme);
+    mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: state.theme });
+    renderAndPersist();
+  }
+
+  function restoreThemePreference() {
+    const saved = localStorage.getItem(APP_CONST.storage.theme);
+    if (saved && APP_CONST.themes.includes(saved)) {
+      state.theme = saved;
+      el.themeSelect.value = saved;
+      mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: saved });
+    }
+  }
+
+  function getMermaidErrorText(err) {
+    if (!err) return "Unknown render error";
+    const msg = err.message || err.str || String(err);
+    return typeof msg === "string" && !msg.includes("<") ? msg : "Syntax error — check your diagram";
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
   function setFileLoaded(loaded) {

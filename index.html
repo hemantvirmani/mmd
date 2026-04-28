@@ -18,6 +18,7 @@
       <button id="loadDiskBtn" type="button">Load from Disk</button>
       <button id="saveDiskBtn" type="button" disabled>Save to Disk</button>
       <button id="copyShareBtn" type="button">Copy Share URL</button>
+      <button id="downloadSvgBtn" type="button" disabled>Download SVG</button>
     </div>
   </header>
 
@@ -45,6 +46,16 @@
     <section class="panel preview-panel">
       <div class="panel-header">
         <h2>Live Preview</h2>
+        <div class="theme-control">
+          <label for="themeSelect" class="theme-label">Theme</label>
+          <select id="themeSelect" class="theme-select" aria-label="Diagram theme">
+          <option value="default">Default</option>
+          <option value="dark">Dark</option>
+          <option value="forest">Forest</option>
+          <option value="neutral">Neutral</option>
+          <option value="base">Base</option>
+        </select>
+        </div>
         <span id="renderStatus" class="status-text">Ready</span>
       </div>
       <div id="mermaidOutput" class="output"></div>

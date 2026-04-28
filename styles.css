@@ -247,6 +247,47 @@ body.is-resizing {
   margin: 0;
 }
 
+.theme-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.theme-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--subtext);
+}
+
+.theme-select {
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  color: var(--primary-strong);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.theme-select:hover {
+  border-color: var(--primary-strong);
+  background: #dbeafe;
+}
+
+.render-error-msg {
+  color: var(--danger);
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .error {
   color: var(--danger);
 }
