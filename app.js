@@ -229,12 +229,11 @@
   }
 
   function saveToDisk() {
-    if (!state.fileLoaded) {
-      alert(APP_CONST.messages.noFileForSave);
-      return;
-    }
+    const suggested = ensureExtension(state.currentFile?.name || "diagram.mmd");
+    const input = prompt("Save as:", suggested);
+    if (input === null) return;
+    const filename = ensureExtension(input.trim() || suggested);
 
-    const filename = ensureExtension(state.currentFile?.name || "diagram.mmd");
     const blob = new Blob([el.mermaidInput.value], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
@@ -389,7 +388,6 @@
 
   function setFileLoaded(loaded) {
     state.fileLoaded = loaded;
-    el.saveDiskBtn.disabled = !loaded;
   }
 
   function persistFileMeta() {

@@ -165,7 +165,6 @@ const APP_CONST = {
     paramName: "code"
   },
   messages: {
-    noFileForSave: "Load a file before saving.",
     copied: "Share URL copied to clipboard.",
     copyFailed: "Copy failed. You can copy from your address bar.",
     saved: "Saved.",
