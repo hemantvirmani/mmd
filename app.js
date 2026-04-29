@@ -6,6 +6,7 @@
     mermaidOutput: document.getElementById("mermaidOutput"),
     fileStatus: document.getElementById("fileStatus"),
     renderStatus: document.getElementById("renderStatus"),
+    newDiagramBtn: document.getElementById("newDiagramBtn"),
     loadDiskBtn: document.getElementById("loadDiskBtn"),
     saveDiskBtn: document.getElementById("saveDiskBtn"),
     copyShareBtn: document.getElementById("copyShareBtn"),
@@ -65,6 +66,7 @@
     el.mermaidInput.addEventListener("input", markDraftFromEditor);
     el.mermaidInput.addEventListener("input", debounce(onEditorChange, 250));
     el.mermaidInput.addEventListener("scroll", syncEditorScroll);
+    el.newDiagramBtn.addEventListener("click", newDiagram);
     el.loadDiskBtn.addEventListener("click", () => el.diskFileInput.click());
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
     el.saveDiskBtn.addEventListener("click", saveToDisk);
@@ -105,6 +107,16 @@
     }
 
     el.mermaidInput.value = APP_CONST.defaultMermaidCode;
+    setFileStatus(APP_CONST.labels.noFileLoaded);
+    renderAndPersist();
+  }
+
+  function newDiagram() {
+    el.mermaidInput.value = "";
+    state.currentFile = null;
+    localStorage.removeItem(APP_CONST.storage.code);
+    localStorage.removeItem(APP_CONST.storage.fileMeta);
+    setFileLoaded(false);
     setFileStatus(APP_CONST.labels.noFileLoaded);
     renderAndPersist();
   }
