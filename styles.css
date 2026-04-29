@@ -175,10 +175,29 @@ body.is-resizing {
   overflow: hidden;
 }
 
+.line-numbers {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3rem;
+  padding: 1rem 0.4rem 1rem 0;
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #94a3b8;
+  text-align: right;
+  background: #f0f4ff;
+  border-right: 1px solid #dbeafe;
+  overflow: hidden;
+  white-space: pre;
+  z-index: 3;
+  user-select: none;
+  pointer-events: none;
+}
+
 .prism-editor-wrap pre,
 .prism-editor-wrap textarea {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 3rem;
   margin: 0;
   padding: 1rem;
   font-family: Consolas, Menlo, Monaco, monospace;
@@ -237,9 +256,7 @@ body.is-resizing {
 
 .output svg {
   display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
+  /* height and width controlled by applyZoom() */
 }
 
 .output pre {
@@ -251,6 +268,41 @@ body.is-resizing {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.docs-link {
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  color: var(--primary-strong);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.docs-link:hover {
+  border-color: var(--primary-strong);
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.sample-select {
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  color: var(--primary-strong);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.sample-select:hover {
+  border-color: var(--primary-strong);
+  background: #dbeafe;
 }
 
 .theme-label {

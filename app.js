@@ -12,6 +12,8 @@
     diskFileInput: document.getElementById("diskFileInput"),
     prismHighlight: document.getElementById("prismHighlight"),
     prismPre: document.querySelector(".prism-editor-wrap pre"),
+    lineNumbers: document.getElementById("lineNumbers"),
+    sampleSelect: document.getElementById("sampleSelect"),
     downloadSvgBtn: document.getElementById("downloadSvgBtn"),
     downloadPngBtn: document.getElementById("downloadPngBtn"),
     themeSelect: document.getElementById("themeSelect"),
@@ -41,10 +43,20 @@
   }
 
   function init() {
+    populateSamples();
     restoreSplitPreference();
     restoreThemePreference();
     bindEvents();
     loadInitialEditorState();
+  }
+
+  function populateSamples() {
+    APP_CONST.samples.forEach((s, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = s.label;
+      el.sampleSelect.appendChild(opt);
+    });
   }
 
   function bindEvents() {
@@ -60,6 +72,7 @@
     el.downloadSvgBtn.addEventListener("click", downloadSvg);
     el.downloadPngBtn.addEventListener("click", downloadPng);
     el.themeSelect.addEventListener("change", onThemeChange);
+    el.sampleSelect.addEventListener("change", onSampleSelect);
     el.zoomOutBtn.addEventListener("click", () => setZoom(state.zoom - APP_CONST.layout.zoomStep));
     el.zoomInBtn.addEventListener("click", () => setZoom(state.zoom + APP_CONST.layout.zoomStep));
     el.mermaidOutput.addEventListener("wheel", onOutputWheel, { passive: false });
@@ -310,12 +323,14 @@
   function applyZoom() {
     const svgEl = el.mermaidOutput.querySelector("svg");
     if (!svgEl) return;
-    const vb = svgEl.viewBox?.baseVal;
-    if (!vb || vb.width <= 0) return;
-    const zoom = state.zoom;
-    svgEl.style.width = `${vb.width * zoom}px`;
-    svgEl.style.height = "auto";
-    svgEl.style.maxWidth = zoom > 1 ? "none" : "100%";
+    // Height-bounded: 100% = fill panel height, width auto-scales via viewBox.
+    const availH = (el.mermaidOutput.clientHeight - 32) * 0.8; // 80% of panel height at 100% zoom
+    svgEl.style.height = `${Math.max(100, availH * state.zoom)}px`;
+    svgEl.style.width = "auto";
+    svgEl.style.maxWidth = "none";
+    svgEl.style.maxHeight = "none";
+    el.mermaidOutput.style.justifyContent = "center";
+    el.mermaidOutput.style.alignItems = state.zoom > 1 ? "flex-start" : "center";
   }
 
   function onOutputWheel(e) {
@@ -323,6 +338,15 @@
     e.preventDefault();
     const delta = e.deltaY < 0 ? APP_CONST.layout.zoomStep : -APP_CONST.layout.zoomStep;
     setZoom(state.zoom + delta);
+  }
+
+  function onSampleSelect() {
+    const idx = parseInt(el.sampleSelect.value, 10);
+    if (isNaN(idx)) return;
+    el.mermaidInput.value = APP_CONST.samples[idx].code;
+    el.sampleSelect.value = "";
+    markDraftFromEditor();
+    renderAndPersist();
   }
 
   function onThemeChange() {
@@ -621,12 +645,22 @@
     if (typeof Prism !== "undefined") {
       Prism.highlightElement(el.prismHighlight);
     }
+    updateLineNumbers();
+  }
+
+  function updateLineNumbers() {
+    if (!el.lineNumbers) return;
+    const count = (el.mermaidInput.value.match(/\n/g) || []).length + 1;
+    const lines = [];
+    for (let i = 1; i <= count; i++) lines.push(i);
+    el.lineNumbers.textContent = lines.join("\n");
   }
 
   function syncEditorScroll() {
     if (!el.prismPre) return;
     el.prismPre.scrollTop = el.mermaidInput.scrollTop;
     el.prismPre.scrollLeft = el.mermaidInput.scrollLeft;
+    if (el.lineNumbers) el.lineNumbers.scrollTop = el.mermaidInput.scrollTop;
   }
 
   init();

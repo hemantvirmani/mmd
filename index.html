@@ -20,6 +20,9 @@
       <button id="copyShareBtn" type="button">Copy Share URL</button>
       <button id="downloadSvgBtn" type="button" disabled>Download SVG</button>
       <button id="downloadPngBtn" type="button" disabled>Download PNG</button>
+      <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener" class="docs-link">
+        Docs <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
+      </a>
     </div>
   </header>
 
@@ -27,9 +30,13 @@
     <section class="panel editor-panel">
       <div class="panel-header">
         <h2>Mermaid Source</h2>
+        <select id="sampleSelect" class="sample-select" aria-label="Insert sample diagram">
+          <option value="">Samples…</option>
+        </select>
         <span id="fileStatus" class="status-text">No file loaded</span>
       </div>
       <div class="prism-editor-wrap">
+        <div id="lineNumbers" class="line-numbers" aria-hidden="true"></div>
         <pre class="language-mermaid" aria-hidden="true"><code id="prismHighlight" class="language-mermaid"></code></pre>
         <textarea id="mermaidInput" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
       </div>
