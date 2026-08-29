@@ -20,7 +20,8 @@
     themeSelect: document.getElementById("themeSelect"),
     zoomOutBtn: document.getElementById("zoomOutBtn"),
     zoomInBtn: document.getElementById("zoomInBtn"),
-    zoomLevel: document.getElementById("zoomLevel")
+    zoomLevel: document.getElementById("zoomLevel"),
+    renderBtn: document.getElementById("renderBtn")
   };
 
   const state = {
@@ -64,9 +65,10 @@
     el.mermaidInput.addEventListener("keydown", onEditorKeyDown);
     el.mermaidInput.addEventListener("input", updateHighlight);
     el.mermaidInput.addEventListener("input", markDraftFromEditor);
-    el.mermaidInput.addEventListener("input", debounce(onEditorChange, 250));
+    el.mermaidInput.addEventListener("input", debounce(persistCode, 250));
     el.mermaidInput.addEventListener("scroll", syncEditorScroll);
     el.newDiagramBtn.addEventListener("click", newDiagram);
+    el.renderBtn.addEventListener("click", renderAndPersist);
     el.loadDiskBtn.addEventListener("click", () => el.diskFileInput.click());
     el.diskFileInput.addEventListener("change", onDiskFilePicked);
     el.saveDiskBtn.addEventListener("click", saveToDisk);
@@ -137,10 +139,6 @@
     }
   }
 
-  function onEditorChange() {
-    renderAndPersist();
-  }
-
   function markDraftFromEditor() {
     if (state.currentFile?.source === "disk") {
       return;
@@ -163,11 +161,16 @@
     setFileStatus(APP_CONST.labels.unsavedDraft);
   }
 
-  async function renderAndPersist() {
+  function persistCode() {
     updateHighlight();
     const code = el.mermaidInput.value;
     localStorage.setItem(APP_CONST.storage.code, code);
     updateUrlWithCode(code);
+    return code;
+  }
+
+  async function renderAndPersist() {
+    const code = persistCode();
 
     if (!code.trim()) {
       el.mermaidOutput.innerHTML = "";
@@ -603,6 +606,12 @@
         indentLines(ta, event.shiftKey);
       }
       ta.dispatchEvent(new Event("input"));
+      return;
+    }
+
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      renderAndPersist();
       return;
     }
 
