@@ -45,7 +45,7 @@ The app stores data in `localStorage` under these keys:
 - `mmd_split_ratio`
 
 ## Dependencies (CDN)
-- Mermaid `10.9.1`
+- Mermaid `11.17.2`
 - Prism `1.29.0`
 - Font Awesome `6.5.1`
 

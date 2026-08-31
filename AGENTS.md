@@ -18,7 +18,7 @@ This is a fully client-side, zero-dependency (no npm) Mermaid diagram editor. Al
 - `styles.css` — CSS custom properties for the color theme, split-layout grid (using CSS `fr` units via `--left-pane-width` / `--right-pane-width`), and responsive breakpoint at 980px.
 
 **External CDN dependencies** (pinned versions, no local copies):
-- Mermaid `10.9.1` from `cdn.jsdelivr.net`
+- Mermaid `11.17.2` from `cdn.jsdelivr.net`
 - Font Awesome `6.5.1` from `cdnjs.cloudflare.com`
 
 **State managed in `app.js`:**
